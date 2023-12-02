@@ -94,6 +94,7 @@ func main() {
 
 	scanner := bufio.NewScanner(f)
 	var validGames []int
+	var gamePowers []int
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -105,8 +106,21 @@ func main() {
 		}
 
 		var setValidity []bool
+		var requiredCubes = map[string]int{"red": 0, "green": 0, "blue": 0}
 		for _, set := range sets {
 			setCubes := getCubes(set)
+
+			if setCubes["red"] > requiredCubes["red"] {
+				requiredCubes["red"] = setCubes["red"]
+			}
+
+			if setCubes["green"] > requiredCubes["green"] {
+				requiredCubes["green"] = setCubes["green"]
+			}
+
+			if setCubes["blue"] > requiredCubes["blue"] {
+				requiredCubes["blue"] = setCubes["blue"]
+			}
 
 			if setCubes["red"] > totalCubes["red"] || setCubes["green"] > totalCubes["green"] || setCubes["blue"] > totalCubes["blue"] {
 				setValidity = append(setValidity, false)
@@ -115,6 +129,9 @@ func main() {
 
 			setValidity = append(setValidity, true)
 		}
+
+		power := requiredCubes["red"] * requiredCubes["green"] * requiredCubes["blue"]
+		gamePowers = append(gamePowers, power)
 
 		if !slices.Contains(setValidity, false) {
 			validGames = append(validGames, gameID)
@@ -126,5 +143,10 @@ func main() {
 		sum += game
 	}
 
-	fmt.Printf("valid games are %v. their sum is %d \n", validGames, sum)
+	powerSum := 0
+	for _, power := range gamePowers {
+		powerSum += power
+	}
+
+	fmt.Printf("valid games are %v \ntheir id sum is %d \ntheir power sum is %d \n", validGames, sum, powerSum)
 }
