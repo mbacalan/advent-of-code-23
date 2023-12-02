@@ -3,23 +3,30 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"os"
-	"regexp"
-	"strconv"
+	"strings"
 )
 
-func findDigits(input string) []string {
-	re := regexp.MustCompile(`\d`)
-	matches := re.FindAllString(input, -1)
-
-	var output []string
-
-	for _, match := range matches {
-		output = append(output, match)
-	}
-
-	return output
+// regex doesn't work with overlapping digits: eightwo
+var digits = map[string]string{
+	"one":   "1",
+	"1":     "1",
+	"two":   "2",
+	"2":     "2",
+	"three": "3",
+	"3":     "3",
+	"four":  "4",
+	"4":     "4",
+	"five":  "5",
+	"5":     "5",
+	"six":   "6",
+	"6":     "6",
+	"seven": "7",
+	"7":     "7",
+	"eight": "8",
+	"8":     "8",
+	"nine":  "9",
+	"9":     "9",
 }
 
 func main() {
@@ -31,25 +38,37 @@ func main() {
 
 	defer f.Close()
 
-	reader := bufio.NewReader(f)
+	scanner := bufio.NewScanner(f)
+	sum := 0
 
-	calibration_sum := 0
+	for scanner.Scan() {
+		digitBuffer := ""
+		line := scanner.Text()
 
-	for {
-		line, err := reader.ReadString('\n')
-
-		if err != nil {
-			if err == io.EOF {
-				fmt.Printf("Calibration sum is %d \n", calibration_sum)
-				return
+		// loop through characters in the line,
+		// creating a new string without the first character each time
+		// to check for prefixes that exist in digits
+		for line != "" {
+			for k, v := range digits {
+				if strings.HasPrefix(line, k) {
+					digitBuffer += v
+					break
+				}
 			}
 
-			panic(err)
+			line = line[1:]
 		}
 
-		calibration := findDigits(line)
-		line_sum := calibration[0] + calibration[len(calibration)-1]
-		line_sum_int, err := strconv.Atoi(line_sum)
-		calibration_sum += line_sum_int
+		if digitBuffer == "" {
+			continue
+		}
+
+		// convert the first and last characters in digitBuffer to integers
+		// and put them together. "1234" -> 14
+		// buf[0] = '5', buf[0] - '0' = 5
+		num := int(digitBuffer[0] - '0') * 10 + int(digitBuffer[len(digitBuffer) - 1] - '0')
+		sum += num
 	}
+
+	fmt.Printf("Calibration sum is %d \n", sum)
 }
